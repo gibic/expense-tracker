@@ -28,25 +28,28 @@ The app runs at http://localhost:3000.
 
 Set these in `.env.local`. `.env.example` lists the defaults.
 
-| Variable       | Description                  | Local default                                      |
-| -------------- | ---------------------------- | -------------------------------------------------- |
-| `DATABASE_URL` | Postgres connection string   | `postgresql://expens:expens@localhost:5432/expens` |
+| Variable             | Description                                              | Local default                                      |
+| -------------------- | -------------------------------------------------------- | -------------------------------------------------- |
+| `DATABASE_URL`       | Postgres connection string                               | `postgresql://expens:expens@localhost:5432/expens` |
+| `BETTER_AUTH_SECRET` | Session signing secret (`openssl rand -base64 32`)       | none, must set                                     |
+| `BETTER_AUTH_URL`    | App base URL                                             | `http://localhost:3000`                            |
+| `ALLOW_SIGN_UP`      | `true` keeps sign-up open after the first account exists | unset (closed)                                     |
 
 In production, point `DATABASE_URL` at the hosted database (Neon, per `docs/specs.md`).
 
 ## Scripts
 
-| Script             | Description                                        |
-| ------------------ | -------------------------------------------------- |
-| `pnpm dev`         | Start the dev server                               |
-| `pnpm build`       | Production build                                   |
-| `pnpm start`       | Serve the production build                         |
-| `pnpm lint`        | Run ESLint                                         |
-| `pnpm typecheck`   | Run `tsc --noEmit`                                 |
-| `pnpm format`      | Format `**/*.{ts,tsx}` with Prettier               |
-| `pnpm db:generate` | Generate a SQL migration from `db/schema.ts`       |
-| `pnpm db:migrate`  | Apply pending migrations in `drizzle/`             |
-| `pnpm db:studio`   | Open Drizzle Studio                                |
+| Script             | Description                                  |
+| ------------------ | -------------------------------------------- |
+| `pnpm dev`         | Start the dev server                         |
+| `pnpm build`       | Production build                             |
+| `pnpm start`       | Serve the production build                   |
+| `pnpm lint`        | Run ESLint                                   |
+| `pnpm typecheck`   | Run `tsc --noEmit`                           |
+| `pnpm format`      | Format `**/*.{ts,tsx}` with Prettier         |
+| `pnpm db:generate` | Generate a SQL migration from `db/schema.ts` |
+| `pnpm db:migrate`  | Apply pending migrations in `drizzle/`       |
+| `pnpm db:studio`   | Open Drizzle Studio                          |
 
 No test runner is configured.
 

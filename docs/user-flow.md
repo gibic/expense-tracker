@@ -53,4 +53,4 @@ Each expense has one category, chosen in the add and edit forms. The category li
 - **Category:** required on every expense; an "Other" category is seeded.
 - **Deleting a category:** blocked while expenses use it; reassign them first.
 - **Deleting an expense:** permanent, after a confirm dialog. No undo in v1.
-- **Sign-in:** email and password. Once the first account exists, set `disableSignUp` to `true` and redeploy; reopen sign-up when others are allowed in.
+- **Sign-in:** email and password. Sign-up closes on its own once the first account exists: a `databaseHooks.user.create.before` hook rejects it. To let others in, set `ALLOW_SIGN_UP=true` and redeploy.

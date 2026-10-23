@@ -21,7 +21,7 @@ No test runner configured.
 Planned app: single-user expense tracker (rupiah only). Read before building features:
 
 - `docs/specs.md` — scope, non-goals, stack decisions: Better Auth, Drizzle, Postgres (Neon), Vercel, server actions (no route handlers unless external client needed).
-- `docs/data-model.md` — `expenses` + `categories` tables, indexes, month queries, seeding via Better Auth `databaseHooks.user.create.after`.
+- `docs/data-model.md` — `expenses` + `categories` tables, indexes, month queries, seeding via Better Auth `databaseHooks.session.create.after`.
 - `docs/user-flow.md` — flows and validation rules.
 - `docs/wireframes.html` — look to match. Canonical canvas: https://claude.ai/artifact/5xbQbbBLfzUy2Gh9qvmGzx (read with Artifact tool).
 
@@ -31,6 +31,8 @@ Rules that span files:
 - Every table has `user_id` (text FK to Better Auth `user.id`). Check session in the data layer, not only in `proxy.ts`.
 - `expenses.category_id` is `on delete restrict`: deleting a used category must be blocked in UI too.
 - `expenses.date` is a plain `date`; month filters use `[first of month, first of next month)`.
+- Only route handler: `app/api/auth/[...all]/route.ts`, Better Auth's endpoint for `lib/auth-client.ts`. App forms (sign-in included) use server actions calling `auth.api.*`.
+- `lib/auth.ts` and `db/` are server code. Shared constants that client components need go in `lib/` files without server imports (e.g. `lib/categories.ts`).
 
 ## Architecture
 
