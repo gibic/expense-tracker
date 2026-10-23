@@ -43,7 +43,7 @@ Each expense has one category, chosen in the add and edit forms. The category li
 
 ## Sign in
 
-1. First visit: create an account with email and password through Better Auth. Sign-up is closed once your account exists.
+1. First visit: create an account with email and password through Better Auth. Only the `OWNER_EMAIL` address can do this. Sign-up is closed once your account exists.
 2. Later visits: sign in; the session keeps you signed in.
 3. Any page opened without a session redirects to sign in.
 4. Sign out from the menu.
@@ -53,4 +53,5 @@ Each expense has one category, chosen in the add and edit forms. The category li
 - **Category:** required on every expense; an "Other" category is seeded.
 - **Deleting a category:** blocked while expenses use it; reassign them first.
 - **Deleting an expense:** permanent, after a confirm dialog. No undo in v1.
-- **Sign-in:** email and password. Sign-up closes on its own once the first account exists: a `databaseHooks.user.create.before` hook rejects it. To let others in, set `ALLOW_SIGN_UP=true` and redeploy.
+- **Sign-in:** email and password. A `databaseHooks.user.create.before` hook accepts only the `OWNER_EMAIL` address, and only while no account exists, so a stranger cannot claim a fresh deploy. To let others in, set `ALLOW_SIGN_UP=true` and redeploy; the sign-in page then links to a sign-up form (`/sign-in?mode=sign-up`).
+- **Auth errors:** sign-in failures always show "Invalid email or password." Sign-up shows only errors that do not reveal whether an email is registered. Both forms go through Better Auth's HTTP router, so its rate limit applies (3 attempts per 10 seconds per IP).

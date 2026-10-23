@@ -33,7 +33,8 @@ Set these in `.env.local`. `.env.example` lists the defaults.
 | `DATABASE_URL`       | Postgres connection string                               | `postgresql://expens:expens@localhost:5432/expens` |
 | `BETTER_AUTH_SECRET` | Session signing secret (`openssl rand -base64 32`)       | none, must set                                     |
 | `BETTER_AUTH_URL`    | App base URL                                             | `http://localhost:3000`                            |
-| `ALLOW_SIGN_UP`      | `true` keeps sign-up open after the first account exists | unset (closed)                                     |
+| `OWNER_EMAIL`        | The only email allowed to create the first account       | none, must set                                     |
+| `ALLOW_SIGN_UP`      | `true` lets anyone sign up, even after the first account | unset (closed)                                     |
 
 In production, point `DATABASE_URL` at the hosted database (Neon, per `docs/specs.md`).
 
@@ -47,11 +48,10 @@ In production, point `DATABASE_URL` at the hosted database (Neon, per `docs/spec
 | `pnpm lint`        | Run ESLint                                   |
 | `pnpm typecheck`   | Run `tsc --noEmit`                           |
 | `pnpm format`      | Format `**/*.{ts,tsx}` with Prettier         |
+| `pnpm test`        | Run Vitest (`*.test.ts` next to source)      |
 | `pnpm db:generate` | Generate a SQL migration from `db/schema.ts` |
 | `pnpm db:migrate`  | Apply pending migrations in `drizzle/`       |
 | `pnpm db:studio`   | Open Drizzle Studio                          |
-
-No test runner is configured.
 
 ## Database workflow
 

@@ -6,15 +6,16 @@ import { nextCookies } from "better-auth/next-js"
 import { db } from "@/db"
 import { user } from "@/db/schema"
 import { seedDefaultCategories } from "@/db/seed"
+import { canSignUp } from "@/lib/sign-up"
 
 export async function hasAccount() {
   const existing = await db.select({ id: user.id }).from(user).limit(1)
   return existing.length > 0
 }
 
-/** Sign-up is open only while no account exists, unless ALLOW_SIGN_UP=true. */
-async function isSignUpOpen() {
-  return process.env.ALLOW_SIGN_UP === "true" || !(await hasAccount())
+/** ALLOW_SIGN_UP=true keeps sign-up open for anyone. */
+export function isSignUpAllowed() {
+  return process.env.ALLOW_SIGN_UP === "true"
 }
 
 // Each Vercel deployment trusts its own URLs, so previews pass the origin check.
@@ -37,21 +38,24 @@ export const auth = betterAuth({
   databaseHooks: {
     user: {
       create: {
-        before: async () => {
-          if (!(await isSignUpOpen())) {
-            throw new APIError("FORBIDDEN", { message: "Sign-up is closed." })
+        before: async (newUser) => {
+          const allowed = canSignUp(newUser.email, {
+            allowSignUp: isSignUpAllowed(),
+            ownerEmail: process.env.OWNER_EMAIL,
+            accountExists: await hasAccount(),
+          })
+          if (!allowed) {
+            throw new APIError("FORBIDDEN", {
+              message: "Sign-up is closed.",
+              code: "SIGN_UP_CLOSED",
+            })
           }
         },
-      },
-    },
-    session: {
-      create: {
-        // Runs on every sign-in, including the one right after sign-up, so a
-        // failed seed is retried next time. Runs after the commit, so a throw
-        // here would fail a sign-in that already succeeded: log instead.
-        after: async (session) => {
+        // Runs after the commit, so a throw here would fail a sign-up that
+        // already succeeded: log instead.
+        after: async (newUser) => {
           try {
-            await seedDefaultCategories(session.userId)
+            await seedDefaultCategories(newUser.id)
           } catch (error) {
             console.error("Seeding default categories failed", error)
           }

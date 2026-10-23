@@ -44,5 +44,5 @@ Both queries filter by `user_id` and by the month as a range: from the first day
 ## Decisions
 
 - **Seed set:** Food & drinks, Transport, Bills & utilities, Shopping, Health, Entertainment and Other. Each user can rename, add or delete categories afterwards.
-- **Seeding:** a Better Auth `databaseHooks.session.create.after` hook inserts the set when the user has no categories (`db/seed.ts`). It runs on every sign-in, including the automatic one after sign-up, so a failed seed is retried. A user who deletes every category gets the set back on the next sign-in.
+- **Seeding:** a Better Auth `databaseHooks.user.create.after` hook inserts the set once, at sign-up (`db/seed.ts`). A failed seed is logged and not retried; `seedDefaultCategories` is safe to call again. A user who deletes every category keeps an empty list.
 - **`updated_at`:** not added in v1. No flow shows a last-edited time; add it with a migration if one is needed.

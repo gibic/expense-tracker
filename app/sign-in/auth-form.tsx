@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 
 import { signIn, signUp, type AuthFormState } from "./actions"
 
-const initialState: AuthFormState = { error: null }
+const initialState: AuthFormState = { error: null, email: "" }
 
 export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   const [state, formAction, pending] = useActionState(
@@ -29,6 +29,8 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
           type="email"
           autoComplete="email"
           placeholder="you@example.com"
+          // React resets the form after the action; keep the email on error.
+          defaultValue={state.email}
           required
           className="h-12 px-3"
         />
