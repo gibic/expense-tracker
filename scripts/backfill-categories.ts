@@ -1,7 +1,14 @@
 // One-off backfill: seeds default categories for users created before the
 // sign-up seeding hook (lib/auth.ts databaseHooks.user.create.after).
 //
-// Run once: pnpm db:backfill-categories [--dry-run]
+// Run once:
+//   pnpm db:backfill-categories --shipped-at=<ISO time> [--dry-run]
+//
+// --shipped-at is when the user-create hook (commit 57ea44f) finished
+// deploying to production, in UTC, e.g. 2026-10-23T14:10:00Z. Take it from
+// the Vercel deploy log, not from git: the commit time is earlier than the
+// deploy, and users created in that gap ran old code. Erring later is safe:
+// it can only re-seed a post-hook user who has zero categories.
 //
 // Targets only users created before the user-create hook shipped (commit
 // 57ea44f; before it, 4d57625 seeded on every sign-in instead) who have zero
@@ -12,11 +19,25 @@
 
 import nextEnv from "@next/env"
 
-// When the user-create hook reached production, in UTC (user.created_at has
-// no time zone). Users created before the deploy ran old code, so this must
-// be the production deploy time of 57ea44f, not its commit time. Erring later
-// is safe: it can only re-seed a post-hook user who has zero categories.
-const HOOK_SHIPPED_AT = new Date("2026-10-23T13:55:53Z")
+// Required flag, no default: a hard-coded value was easy to get wrong (it held
+// the commit time, not the deploy time). Requires an explicit "Z" or offset
+// so the time is not read in the machine's local zone.
+function readShippedAt(): Date {
+  const arg = process.argv.find((a) => a.startsWith("--shipped-at="))
+  const value = arg?.slice("--shipped-at=".length) ?? ""
+  const date = new Date(value)
+  if (!/(Z|[+-]\d{2}:\d{2})$/.test(value) || Number.isNaN(date.getTime())) {
+    console.error(
+      "Missing or invalid --shipped-at. Pass the production deploy time of " +
+        "commit 57ea44f from the Vercel deploy log, e.g. " +
+        "--shipped-at=2026-10-23T14:10:00Z"
+    )
+    process.exit(1)
+  }
+  return date
+}
+
+const HOOK_SHIPPED_AT = readShippedAt()
 
 // Load .env before importing db/ (db/index.ts reads DATABASE_URL on import).
 // @next/env is CJS: no named ESM export, so use the default import.
@@ -53,7 +74,9 @@ async function main() {
         )
       )
 
-    console.log(`${users.length} pre-hook user(s) without categories`)
+    console.log(
+      `${users.length} user(s) created before ${HOOK_SHIPPED_AT.toISOString()} without categories`
+    )
     if (dryRun) {
       for (const u of users) console.log(`would seed ${u.email} (${u.id})`)
       return
