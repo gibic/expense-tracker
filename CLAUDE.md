@@ -15,6 +15,7 @@ Package manager: pnpm.
 - `pnpm format` — Prettier on `**/*.{ts,tsx}` (uses `prettier-plugin-tailwindcss`)
 
 - `pnpm test` — Vitest (node env), `*.test.ts` colocated next to source
+- DB-backed tests (`*.db.test.ts`) run against real Postgres. They need `.env.test.local` with `DATABASE_URL=postgresql://expens:expens@localhost:5432/expens_test` (docker-compose DB). The name must end in `_test`; the suite creates and migrates that database. Without it they are skipped. Vitest never loads `.env.local`.
 
 ## Git workflow
 
