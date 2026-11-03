@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
+import { ThemeToggle } from "@/components/theme-toggle"
 import { ADD_EXPENSE, isActive, NAV, type NavItem } from "@/lib/nav"
 import { cn } from "@/lib/utils"
 
@@ -45,7 +46,9 @@ export function SidebarNav() {
       aria-label="Primary"
       className="sticky top-0 hidden h-svh w-60 shrink-0 flex-col gap-2 overflow-y-auto border-r border-sidebar-border bg-sidebar p-4 text-sidebar-foreground md:flex"
     >
-      <p className="px-3 pt-2 pb-4 font-bold">Expense tracker</p>
+      <p className="px-3 pt-1 pb-4 font-logo text-xl leading-7 font-extrabold tracking-tight">
+        Expense tracker
+      </p>
       <Link
         href={ADD_EXPENSE.href}
         aria-current={addCurrent ? "page" : undefined}
@@ -61,7 +64,8 @@ export function SidebarNav() {
       <SidebarLink item={NAV.dashboard} />
       <SidebarLink item={NAV.expenses} />
       <SidebarLink item={NAV.categories} />
-      <div className="mt-auto flex flex-col">
+      <div className="mt-auto flex flex-col gap-2">
+        <ThemeToggle className="rounded-lg px-3 font-medium text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground" />
         <SidebarLink item={NAV.account} />
       </div>
     </nav>

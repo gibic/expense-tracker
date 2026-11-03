@@ -1,5 +1,6 @@
 import { LogOut, User } from "lucide-react"
 
+import { ThemeToggle } from "@/components/theme-toggle"
 import { getSession } from "@/lib/session"
 
 import { signOut } from "./actions"
@@ -30,6 +31,8 @@ export default async function AccountPage() {
           </span>
         </span>
       </section>
+      {/* Desktop has the toggle in the sidebar. */}
+      <ThemeToggle className="justify-center rounded-lg border px-4 font-semibold hover:bg-muted md:hidden" />
       <form action={signOut} className="mt-auto md:mt-4">
         <button
           type="submit"

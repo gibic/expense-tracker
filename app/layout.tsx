@@ -1,4 +1,4 @@
-import { Geist_Mono, Inter } from "next/font/google"
+import { Bricolage_Grotesque, Geist_Mono, Inter } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -9,6 +9,12 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
+})
+
+// Wordmark only (`font-logo`). Body text stays Inter.
+const fontLogo = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-logo",
 })
 
 export default function RootLayout({
@@ -23,6 +29,7 @@ export default function RootLayout({
       className={cn(
         "antialiased",
         fontMono.variable,
+        fontLogo.variable,
         "font-sans",
         inter.variable
       )}
