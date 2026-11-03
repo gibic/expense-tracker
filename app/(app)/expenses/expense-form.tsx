@@ -19,6 +19,8 @@ import { groupRupiah } from "@/lib/money"
 
 import type { ExpenseFormState } from "./actions"
 
+const NO_CATEGORIES_ID = "categoryId-none"
+
 type Props = {
   action: (
     prev: ExpenseFormState,
@@ -61,6 +63,10 @@ export function ExpenseForm({
     setCategoryId(state.values.categoryId || null)
     setAmount(state.values.amount)
   }
+
+  // Possible when the user deleted every category, or seeding failed. The
+  // edit form never hits this: the expense's own category still exists.
+  const noCategories = categories.length === 0
 
   // Group thousands while typing; non-digits are dropped.
   function onAmountChange(raw: string) {
@@ -133,16 +139,25 @@ export function ExpenseForm({
           value={categoryId}
           onValueChange={(value) => setCategoryId(value)}
           items={categories.map((c) => ({ value: c.id, label: c.name }))}
+          disabled={noCategories}
         >
           <SelectTrigger
             id="categoryId"
             aria-invalid={errors.categoryId ? true : undefined}
             aria-describedby={
-              errors.categoryId ? "categoryId-error" : undefined
+              errors.categoryId
+                ? "categoryId-error"
+                : noCategories
+                  ? NO_CATEGORIES_ID
+                  : undefined
             }
             className={`h-12 w-full px-3 ${errors.categoryId ? "border-2 border-foreground" : ""}`}
           >
-            <SelectValue placeholder="Select a category" />
+            <SelectValue
+              placeholder={
+                noCategories ? "No categories yet" : "Select a category"
+              }
+            />
           </SelectTrigger>
           <SelectContent>
             {categories.map((c) => (
@@ -152,6 +167,18 @@ export function ExpenseForm({
             ))}
           </SelectContent>
         </Select>
+        {noCategories ? (
+          <p id={NO_CATEGORIES_ID} className="text-sm">
+            Every expense needs a category.{" "}
+            <Link
+              href="/categories"
+              className="font-bold underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              Add a category
+            </Link>{" "}
+            first.
+          </p>
+        ) : null}
       </Field>
 
       <Field id="note" label="Note (optional)">
@@ -172,7 +199,8 @@ export function ExpenseForm({
       <div className="mt-auto flex flex-col gap-2 md:mt-2 md:flex-row-reverse">
         <Button
           type="submit"
-          disabled={pending}
+          disabled={pending || noCategories}
+          aria-describedby={noCategories ? NO_CATEGORIES_ID : undefined}
           className="h-12 w-full text-base font-bold md:w-auto md:px-6"
         >
           {submitLabel}
