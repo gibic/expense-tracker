@@ -1,3 +1,5 @@
+import { z } from "zod"
+
 import { parseRupiah } from "@/lib/money"
 
 export type ExpenseValues = {
@@ -19,19 +21,47 @@ export type ExpenseValue = {
 export type ExpenseValidation =
   { ok: true; value: ExpenseValue } | { ok: false; errors: ExpenseErrors }
 
-const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/
+const amountSchema = z
+  .string()
+  .trim()
+  .min(1, { error: "Enter an amount.", abort: true })
+  .transform((raw, ctx) => {
+    const amount = parseRupiah(raw)
+    if (amount === null) {
+      ctx.issues.push({
+        code: "custom",
+        message: "Enter whole rupiah, digits only.",
+        input: raw,
+      })
+      return z.NEVER
+    }
+    return amount
+  })
+  .pipe(z.number().int().positive("Amount must be more than 0."))
 
-function isRealDate(value: string) {
-  const match = DATE_RE.exec(value)
-  if (!match) return false
-  const [y, m, d] = match.slice(1).map(Number)
-  const date = new Date(Date.UTC(y, m - 1, d))
-  return (
-    date.getUTCFullYear() === y &&
-    date.getUTCMonth() === m - 1 &&
-    date.getUTCDate() === d
-  )
-}
+// z.iso.date() checks real calendar dates, leap years included.
+const dateSchema = z.iso.date("Pick a valid date.")
+
+// Category ids are Postgres uuids. z.guid() accepts any 8-4-4-4-12 hex, like
+// Postgres and isUuid(); z.uuid() would also demand RFC version bits.
+// Ownership is checked in the data layer.
+const categoryIdSchema = z
+  .string()
+  .trim()
+  .min(1, { error: "Pick a category.", abort: true })
+  .pipe(z.guid("Pick one of your categories."))
+
+const noteSchema = z
+  .string()
+  .trim()
+  .transform((note) => (note === "" ? null : note))
+
+export const expenseSchema = z.object({
+  amount: amountSchema,
+  date: dateSchema,
+  categoryId: categoryIdSchema,
+  note: noteSchema,
+})
 
 /** Read raw form fields as trimmed strings (also used to echo values back). */
 export function readExpenseValues(formData: FormData): ExpenseValues {
@@ -45,26 +75,14 @@ export function readExpenseValues(formData: FormData): ExpenseValues {
 }
 
 export function validateExpense(values: ExpenseValues): ExpenseValidation {
+  const result = expenseSchema.safeParse(values)
+  if (result.success) return { ok: true, value: result.data }
+
+  // Show the first message per field, like the form's inline errors expect.
   const errors: ExpenseErrors = {}
-
-  const amount = parseRupiah(values.amount)
-  if (values.amount === "") errors.amount = "Enter an amount."
-  else if (amount === null) errors.amount = "Enter whole rupiah, digits only."
-  else if (amount <= 0) errors.amount = "Amount must be more than 0."
-
-  if (!isRealDate(values.date)) errors.date = "Pick a valid date."
-  if (!values.categoryId) errors.categoryId = "Pick a category."
-
-  if (Object.keys(errors).length > 0 || amount === null) {
-    return { ok: false, errors }
+  for (const issue of result.error.issues) {
+    const field = issue.path[0] as keyof ExpenseValues
+    errors[field] ??= issue.message
   }
-  return {
-    ok: true,
-    value: {
-      amount,
-      date: values.date,
-      categoryId: values.categoryId,
-      note: values.note === "" ? null : values.note,
-    },
-  }
+  return { ok: false, errors }
 }

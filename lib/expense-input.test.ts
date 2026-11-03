@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest"
 
 import { readExpenseValues, validateExpense } from "./expense-input"
 
+const CATEGORY_ID = "3f0c8a4e-6b1d-4c2a-9e7f-1a2b3c4d5e6f"
+
 const valid = {
   amount: "25.000",
   date: "2026-11-03",
-  categoryId: "cat-1",
+  categoryId: CATEGORY_ID,
   note: "lunch",
 }
 
@@ -16,7 +18,7 @@ describe("validateExpense", () => {
       value: {
         amount: 25000,
         date: "2026-11-03",
-        categoryId: "cat-1",
+        categoryId: CATEGORY_ID,
         note: "lunch",
       },
     })
@@ -46,18 +48,56 @@ describe("validateExpense", () => {
     expect(!result.ok && result.errors.amount).toBeDefined()
   })
 
+  it("accepts dotted amount with Rp prefix", () => {
+    const result = validateExpense({ ...valid, amount: "Rp 2.557.000" })
+    expect(result.ok && result.value.amount).toBe(2557000)
+  })
+
+  it("rejects negative amount", () => {
+    const result = validateExpense({ ...valid, amount: "-5000" })
+    expect(!result.ok && result.errors.amount).toBe(
+      "Enter whole rupiah, digits only."
+    )
+  })
+
+  it("rejects decimal-style amount", () => {
+    const result = validateExpense({ ...valid, amount: "25.00" })
+    expect(!result.ok && result.errors.amount).toBe(
+      "Enter whole rupiah, digits only."
+    )
+  })
+
+  it("rejects amount past safe integer range", () => {
+    const result = validateExpense({ ...valid, amount: "9007199254740993" })
+    expect(!result.ok && result.errors.amount).toBeDefined()
+  })
+
+  it("rejects non-uuid category", () => {
+    const result = validateExpense({ ...valid, categoryId: "cat-1" })
+    expect(!result.ok && result.errors.categoryId).toBe(
+      "Pick one of your categories."
+    )
+  })
+
+  it("accepts leap day in a leap year", () => {
+    expect(validateExpense({ ...valid, date: "2028-02-29" }).ok).toBe(true)
+  })
+
   it("rejects missing category", () => {
     const result = validateExpense({ ...valid, categoryId: "" })
     expect(!result.ok && result.errors.categoryId).toBe("Pick a category.")
   })
 
-  it.each([[""], ["2026-02-30"], ["03-11-2026"], ["2026-13-01"]])(
-    "rejects date %j",
-    (date) => {
-      const result = validateExpense({ ...valid, date })
-      expect(!result.ok && result.errors.date).toBe("Pick a valid date.")
-    }
-  )
+  it.each([
+    [""],
+    ["2026-02-30"],
+    ["2027-02-29"],
+    ["03-11-2026"],
+    ["2026-13-01"],
+  ])("rejects date %j", (date) => {
+    const result = validateExpense({ ...valid, date })
+    expect(!result.ok && result.errors.date).toBe("Pick a valid date.")
+  })
 
   it("reports all errors at once", () => {
     const result = validateExpense({
