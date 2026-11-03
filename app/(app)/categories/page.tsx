@@ -1,8 +1,13 @@
-export default function CategoriesPage() {
+import { listCategories } from "@/lib/category-data"
+
+import { CategoryManager } from "./category-manager"
+
+export default async function CategoriesPage() {
+  const categories = await listCategories()
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-4 md:mx-0">
+    <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 md:mx-0 md:max-w-none md:flex-none">
       <h1 className="text-xl font-bold">Categories</h1>
-      <p className="text-sm text-muted-foreground">Coming soon.</p>
+      <CategoryManager categories={categories} />
     </div>
   )
 }

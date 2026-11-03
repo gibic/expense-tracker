@@ -6,6 +6,7 @@ import { db } from "@/db"
 import { categories, expenses } from "@/db/schema"
 import type { ExpenseValue } from "@/lib/expense-input"
 import { monthRange } from "@/lib/month"
+import { FOREIGN_KEY_VIOLATION, hasPgCode } from "@/lib/pg-error"
 import { requireUserId } from "@/lib/session"
 
 const UUID_RE =
@@ -21,15 +22,6 @@ export type ExpenseRow = {
   note: string | null
   categoryId: string
   categoryName: string
-}
-
-export async function listCategories() {
-  const userId = await requireUserId()
-  return db
-    .select({ id: categories.id, name: categories.name })
-    .from(categories)
-    .where(eq(categories.userId, userId))
-    .orderBy(categories.name)
 }
 
 export async function listExpenses(opts: {
@@ -106,17 +98,6 @@ async function categoryBelongsToUser(userId: string, categoryId: string) {
   return Boolean(row)
 }
 
-/**
- * True for a Postgres foreign key violation (23503). Drizzle wraps driver
- * errors in DrizzleQueryError, so walk the cause chain.
- */
-function isForeignKeyViolation(error: unknown): boolean {
-  for (let e = error; e instanceof Error; e = e.cause) {
-    if ((e as { code?: unknown }).code === "23503") return true
-  }
-  return false
-}
-
 /** Returns false when the category is not the caller's. */
 export async function createExpense(value: ExpenseValue) {
   const userId = await requireUserId()
@@ -125,7 +106,7 @@ export async function createExpense(value: ExpenseValue) {
     await db.insert(expenses).values({ ...value, userId })
   } catch (error) {
     // Category deleted between the check and the insert.
-    if (isForeignKeyViolation(error)) return false
+    if (hasPgCode(error, FOREIGN_KEY_VIOLATION)) return false
     throw error
   }
   return true
@@ -147,7 +128,7 @@ export async function updateExpense(id: string, value: ExpenseValue) {
     return updated.length > 0 ? ("ok" as const) : ("not-found" as const)
   } catch (error) {
     // Category deleted between the check and the update.
-    if (isForeignKeyViolation(error)) return "bad-category" as const
+    if (hasPgCode(error, FOREIGN_KEY_VIOLATION)) return "bad-category" as const
     throw error
   }
 }

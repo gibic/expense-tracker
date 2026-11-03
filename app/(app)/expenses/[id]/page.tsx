@@ -2,7 +2,8 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
-import { getExpense, listCategories } from "@/lib/expenses"
+import { listCategories } from "@/lib/category-data"
+import { getExpense } from "@/lib/expenses"
 import { groupRupiah } from "@/lib/money"
 
 import { updateExpenseAction } from "../actions"

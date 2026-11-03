@@ -1,7 +1,8 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 
-import { isUuid, listCategories, listExpenses } from "@/lib/expenses"
+import { listCategories } from "@/lib/category-data"
+import { isUuid, listExpenses } from "@/lib/expenses"
 import { formatRupiah } from "@/lib/money"
 import { isMonth, parseMonth, shiftMonth } from "@/lib/month"
 import { cn } from "@/lib/utils"

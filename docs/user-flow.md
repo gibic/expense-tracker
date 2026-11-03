@@ -34,6 +34,8 @@ Each expense has one category, chosen in the add and edit forms. The category li
 3. Rename a category; its expenses keep it under the new name.
 4. Delete a category. Deletion is blocked while expenses use it; reassign them first.
 
+A category name is trimmed, with inner runs of spaces collapsed to one. A blank name, a name over 40 characters, or a name that matches another category ignoring case shows an inline error and blocks saving.
+
 ## Monthly summary
 
 1. Open the dashboard; it shows the current month.

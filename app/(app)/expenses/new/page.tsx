@@ -1,7 +1,7 @@
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
-import { listCategories } from "@/lib/expenses"
+import { listCategories } from "@/lib/category-data"
 import { today } from "@/lib/month"
 
 import { createExpenseAction } from "../actions"
