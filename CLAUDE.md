@@ -16,6 +16,15 @@ Package manager: pnpm.
 
 - `pnpm test` — Vitest (node env), `*.test.ts` colocated next to source
 
+## Git workflow
+
+Trunk-based development. `main` is the only branch.
+
+- Commit directly to `main`. Do not create feature branches, worktrees or PRs.
+- Keep each commit small and working: run `pnpm lint`, `pnpm typecheck` and `pnpm test` before committing.
+- Unfinished work goes in behind a flag or stays unreachable from the UI. Do not hold it on a branch.
+- Pull with rebase (`git pull --rebase`) before pushing. Never force-push `main`.
+
 ## Product and design docs
 
 Planned app: single-user expense tracker (rupiah only). Read before building features:
