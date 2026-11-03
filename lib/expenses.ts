@@ -1,6 +1,6 @@
 import "server-only"
 
-import { and, desc, eq, gte, lt, sql } from "drizzle-orm"
+import { and, count, desc, eq, gte, lt, sql } from "drizzle-orm"
 
 import { db } from "@/db"
 import { categories, expenses } from "@/db/schema"
@@ -8,6 +8,7 @@ import type { ExpenseValue } from "@/lib/expense-input"
 import { monthRange } from "@/lib/month"
 import { FOREIGN_KEY_VIOLATION, hasPgCode } from "@/lib/pg-error"
 import { requireUserId } from "@/lib/session"
+import { summarize, type MonthSummary } from "@/lib/summary"
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -52,7 +53,8 @@ export async function listExpenses(opts: {
     .orderBy(desc(expenses.date), desc(expenses.createdAt))
 }
 
-export async function monthSummary(month: string) {
+/** Month total, expense count and per-category breakdown, largest first. */
+export async function monthSummary(month: string): Promise<MonthSummary> {
   const userId = await requireUserId()
   const { from, to } = monthRange(month)
   const rows = await db
@@ -60,6 +62,7 @@ export async function monthSummary(month: string) {
       categoryId: expenses.categoryId,
       categoryName: categories.name,
       total: sql<string>`sum(${expenses.amount})`,
+      count: count(),
     })
     .from(expenses)
     .innerJoin(categories, eq(categories.id, expenses.categoryId))
@@ -71,12 +74,9 @@ export async function monthSummary(month: string) {
       )
     )
     .groupBy(expenses.categoryId, categories.name)
-    .orderBy(desc(sql`sum(${expenses.amount})`))
+    .orderBy(desc(sql`sum(${expenses.amount})`), categories.name)
 
-  // sum(bigint) comes back as a string; whole rupiah stays within safe range.
-  const byCategory = rows.map((r) => ({ ...r, total: Number(r.total) }))
-  const total = byCategory.reduce((acc, r) => acc + r.total, 0)
-  return { total, byCategory }
+  return summarize(rows)
 }
 
 export async function getExpense(id: string) {

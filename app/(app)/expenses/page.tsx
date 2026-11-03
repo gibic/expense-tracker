@@ -1,6 +1,6 @@
-import { ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 
+import { MonthSwitcher } from "@/components/month-switcher"
 import { listCategories } from "@/lib/category-data"
 import { isUuid, listExpenses } from "@/lib/expenses"
 import { formatRupiah } from "@/lib/money"
@@ -27,38 +27,6 @@ function shortDate(date: string) {
   return dayFormat.format(new Date(`${date}T00:00:00Z`))
 }
 
-const monthButton =
-  "grid size-11 place-items-center rounded-lg border border-input outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-
-function MonthLink({
-  month,
-  categoryId,
-  label,
-  children,
-}: {
-  month: string
-  categoryId: string | undefined
-  label: string
-  children: React.ReactNode
-}) {
-  if (!isMonth(month)) {
-    return (
-      <span aria-hidden className={cn(monthButton, "opacity-40")}>
-        {children}
-      </span>
-    )
-  }
-  return (
-    <Link
-      href={expensesHref(month, categoryId)}
-      aria-label={label}
-      className={cn(monthButton, "hover:bg-muted")}
-    >
-      {children}
-    </Link>
-  )
-}
-
 function CategoryChip({ name }: { name: string }) {
   return (
     <span className="inline-block shrink-0 rounded-md border border-input bg-muted px-2 py-0.5 text-xs font-semibold">
@@ -83,6 +51,10 @@ export default async function ExpensesPage({
   ])
   const total = rows.reduce((sum, e) => sum + e.amount, 0)
   const label = monthFormat.format(new Date(`${month}-01T00:00:00Z`))
+  const stepHref = (delta: number) => {
+    const target = shiftMonth(month, delta)
+    return isMonth(target) ? expensesHref(target, categoryId) : null
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-4 md:mx-0 md:max-w-[1100px] md:gap-6">
@@ -98,26 +70,12 @@ export default async function ExpensesPage({
             Month
           </span>
           <div className="flex items-center gap-1 md:gap-2">
-            <MonthLink
-              month={shiftMonth(month, -1)}
-              categoryId={categoryId}
-              label="Previous month"
-            >
-              <ChevronLeft aria-hidden className="size-5" />
-            </MonthLink>
-            <span
-              aria-live="polite"
-              className="min-w-18 text-center font-semibold md:min-w-30"
-            >
-              {label}
-            </span>
-            <MonthLink
-              month={shiftMonth(month, 1)}
-              categoryId={categoryId}
-              label="Next month"
-            >
-              <ChevronRight aria-hidden className="size-5" />
-            </MonthLink>
+            <MonthSwitcher
+              label={label}
+              prevHref={stepHref(-1)}
+              nextHref={stepHref(1)}
+              labelClassName="min-w-18 md:min-w-30"
+            />
           </div>
         </div>
 
