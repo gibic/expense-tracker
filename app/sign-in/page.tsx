@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
+import { Logo } from "@/components/logo"
 import { hasAccount, isSignUpAllowed } from "@/lib/auth"
 import { getSession } from "@/lib/session"
 
@@ -29,6 +30,7 @@ export default async function SignInPage({
   return (
     <div className="flex min-h-svh md:items-center md:justify-center md:p-8">
       <main className="flex w-full flex-col gap-6 px-4 pt-16 pb-4 md:max-w-[400px] md:rounded-lg md:border md:p-8">
+        <Logo />
         <h1 className="text-xl font-bold">
           {mode === "sign-up" ? "Create account" : "Sign in"}
         </h1>
