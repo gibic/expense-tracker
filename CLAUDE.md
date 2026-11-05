@@ -8,12 +8,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Package manager: pnpm.
 
-- `pnpm dev` — dev server
-- `pnpm build` / `pnpm start` — production build / serve
-- `pnpm lint` — ESLint
-- `pnpm typecheck` — `tsc --noEmit`
-- `pnpm format` — Prettier on `**/*.{ts,tsx}` (uses `prettier-plugin-tailwindcss`)
-
 - `pnpm test` — Vitest (node env), `*.test.ts` colocated next to source
 - DB-backed tests (`*.db.test.ts`) run against real Postgres. They need `.env.test.local` with `DATABASE_URL=postgresql://expens:expens@localhost:5432/expens_test` (docker-compose DB). The name must end in `_test`; the suite creates and migrates that database. Without it they are skipped. Vitest never loads `.env.local`.
 
@@ -46,11 +40,5 @@ Rules that span files:
 
 ## Architecture
 
-Early-stage Next.js 16 (App Router, React 19, Tailwind v4) app, scaffolded from shadcn/ui template. Currently only placeholder `app/page.tsx`. Auth, Drizzle and DB not installed yet (see `docs/specs.md`).
-
-- `app/` — routes. `layout.tsx` wraps children in `ThemeProvider` (`next-themes`, `components/theme-provider.tsx`); fonts via `next/font/google` (Inter → `--font-sans`, Geist Mono → `--font-mono`). Styles/theme tokens in `app/globals.css`.
 - `components/ui/` — shadcn components. Style `base-nova`, built on `@base-ui/react` (not Radix). Base color `stone`, icons `lucide-react`. `rsc: true`.
-- `lib/utils.ts` — `cn()` helper. `hooks/` — shared hooks (empty).
-- Path alias `@/*` maps to repo root.
 - Add components with `npx shadcn@latest add <name>`; `components.json` holds aliases. Use `shadcn` skill for component work.
-- Next.js docs for this version are in `node_modules/next/dist/docs/` — read before writing Next code (see AGENTS.md).
